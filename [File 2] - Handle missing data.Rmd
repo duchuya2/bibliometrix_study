@@ -1,0 +1,73 @@
+---
+title: '[FILE 2]-HANDLE MISSING DATA'
+author: "Harley"
+date: "3/1/2022"
+output: html_document
+---
+
+```{r How to use the File 2}
+print('This R file support you how to define and handle the missing data after importing bibliometric data. The code script is organized by the following structure: 
+1. Install the essential R packages for handling missing data
+2. Import the preproccessed data
+3. Check the summary of data to detect which variable has missing data
+4. Handle with missing data
+5. Save the data for analysis
+      ')
+
+# INPUT DATA: pre.data.RData
+# OUTPUT DATA: data.RData 
+
+```
+
+```{r 1. Install the essential R packages for importing}
+rm(list = ls()) # De
+#install.packages("pacman")
+library(pacman)
+p_load(tidyverse, bibliometrix)
+```
+
+```{r 2. Import the preproccessed data}
+
+load(file = "./data/pre.data.RData")
+
+```
+
+
+```{r 3. Check the summary of data to detect which variable has missing data}
+
+summary(pre.data)
+
+pre.data %>% summarise(count_miss = sum(is.na('variables name with missing value'))) # ==Fill== 
+miss.TI <- pre.data %>% filter(is.na(PY)==T)
+miss.AU <- pre.data %>% filter(is.na(AU)==T)
+miss.AU_CO <- pre.data %>% filter(is.na(AU1_CO)==T) %>% select(TI, AU, C1, AU1_CO) # country
+
+miss.PY <- pre.data %>% filter(is.na(PY)==T) %>% select(TI, AU, PY)
+miss.id <- pre.data %>% filter(is.na(ID)==T) %>% select(TI, AU, ID, PY)
+miss.de <- pre.data %>% filter(is.na(DE)==T) %>% select(TI, AU, DE, PY) # we can see missing data in author keywords => because abstract do not provide, old journal. 
+# key word plus can overcome this challenges. it is created by the WOS automatically. (Not available in Scopus)
+```
+
+
+```{r 4. Handle with missing data}
+
+# 1st method - complete case
+data <- pre.data %>% filter(PY<2022) %>% filter(is.na(PY)==F) %>% filter(is.na(AU)==F) 
+
+# 2nd method - check every paper to fill missing data properly 
+miss.data <- pre.data %>%
+  filter(is.na(PY)==T) %>%
+  filter(is.na(AU)==T) %>%
+   filter(is.na(SO)==T)
+
+## after filling => save the data
+```
+
+```{r 5. Save the data for analysis}
+
+save(data, file="./data/data.RData") # save prepossessed data
+
+```
+
+
+

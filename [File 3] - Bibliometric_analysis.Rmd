@@ -1,0 +1,158 @@
+---
+title: '[File 3]-Bibliometric analysis'
+author: "Harley"
+date: "4/1/2022"
+output: html_document
+---
+
+```{r How to use the File 3}
+print('This R file support you how to analyze the bibliometric data after cleaning data. The code script is organized by the following structure: 
+1.Load the package
+2.Import data
+3.Growth of publication
+4.Top countries
+5.Performance of a specific country
+6.Top journal
+7.Top paper
+8.Top author (next part)
+9.Top keywords (next part) 
+      ')
+
+# INPUT DATA: data.RData
+# OUTPUT DATA: data.RData 
+
+```
+
+```{r 1.Load the package}
+rm(list = ls()) # Clean old data
+library(pacman)
+p_load(tidyverse, bibliometrix) 
+```
+
+
+```{r 2.Import data}
+
+load(file = "./data/data.RData")
+
+```
+
+
+```{r 3.Growth of publication}
+
+# Find the number of total papers include data
+ttl_paper <- data %>% summarise(n()) %>% pull()
+ttl_paper <- nrow(data) # calculate the total number of papers
+
+
+# Create a table with three columns: No.paper, total citation per year, average citation per year
+tbl_publication <- data %>% select(PY,TC) %>% 
+  group_by(PY) %>% 
+  summarise(No.paper = n(), total_TC = sum(TC), mean_tc = mean(TC)) 
+
+write.table(tbl_publication, file = "./results/tbl_publication.csv", sep=",", row.names = F) # save the table results in the folder named "results"
+
+``` 
+
+```{r 3.Top countries }
+
+overall_cite <- sum(data$TC) # Calculate the total number of citation in database. 
+
+tbl_country <- data %>% # select the data
+  filter(is.na(AU1_CO)==F) %>%  # filter no missing value in country name 
+  select(AU1_CO, TC) %>%  # Extract data: country and total citation per paper
+  group_by(AU1_CO) %>%  # group the data by country name
+  summarise(No.paper = n(), percent_paper= n()/ttl_paper*100, total_TC = sum(TC), percent_citation=sum(TC)/overall_cite*100  ,average_cit = mean(TC) ) %>% # calculate indicators in table: No.paper, % percentate in whole data, total citation for a specific country, average number of citation per paper in a country
+  arrange(desc(No.paper)) %>% # arrange results in the descending order of No.paper published in a country
+  head(20) # Select top 20 countries with highest number
+
+write.table(tbl_country, file="./results/tbl_country.csv", sep=",", row.names = F ) # Save the results. 
+
+```
+
+```{r 5.Performance of a specific country}
+
+tbl_taiwan_rank <- data %>%  # select the data
+  filter(is.na(AU1_CO)==F) %>%   # filter no missing value in country name 
+  select(PY, AU1_CO, TC) %>% # Extract data: country and total citation per paper, publication year
+  group_by(PY,AU1_CO) %>%  # group the data by country name, Publication year
+  summarise(No.paper = n(), total_TC = sum(TC)) %>%  # # calculate indicators in table: No.paper, total of citation 
+  group_by(PY) %>% # group data by year
+  mutate(rank_output = rank(-No.paper)) %>% # rank countries based on the total number of paper published. 
+  mutate(rank_citation =  rank(-total_TC)) %>% # rank countries based on the rank citation
+  filter(AU1_CO=="TAIWAN") # select Taiwan to see the growth of publication over years.
+
+write.table(tbl_taiwan_rank, file="./results/tbl_specific_country.csv", sep=",", row.names = F ) 
+
+# save data finding in results folder
+
+``` 
+
+
+```{r 6.Top journal}
+
+tbl_topjournal <- data %>% 
+  select(SO, TC) %>% # select the journal name, and total citation
+  group_by(SO) %>% # group the paper by the journal name
+  summarise(No.paper=n(), percent_paper=n()/ttl_paper*100, total_TC = sum(TC), percent_citation=sum(TC)/overall_cite*100  ,average_cit = mean(TC) ) %>%  # calculate the indicators for table
+  arrange(desc(No.paper)) %>% # rank the paper in decreasing order 
+  head(10) # Select top 10 journal with the highest number of articles
+
+write.table(tbl_topjournal, file="./results/tbl_topjournal.csv", sep = ",", row.names = F)
+
+```
+
+```{r 7.Top paper}
+names(data)
+# View(citations)
+# The most frequent cited manuscripts
+CR <- citations(data, field = "article", sep = ";") # extract the information of paper with citation
+top.paper <- cbind((CR$Cited[1:10])) # select top 10 paper
+
+top.cited.paper <- data.frame(cbind(Row.Names = rownames(top.paper), Num.Ref= top.paper[,1] )) # tranform format into data frame
+
+# Split the information in one columns into multiple columns, separated by ","
+ncols <- max(stringr::str_count(top.cited.paper$Row.Names, ",")) + 1
+
+colmn <- paste("col", 1:ncols)
+
+colmn
+
+top1 <-
+  tidyr::separate( data = top.cited.paper,
+    col = Row.Names ,
+    sep = ",",
+    into = colmn,
+    remove = FALSE
+  )
+
+
+top.cited.paper.n <- data.frame("Author" = top1$`col 1`,
+                                "Pub.Year" = top1$`col 2`,
+                                "Journal name" = top1$`col 3`,
+                                "DOI" = top1$`col 6`,
+                                "No.citation" = top1$Num.Ref
+                                )
+
+
+write.table(top.cited.paper.n, './results/tbl.top_papers.csv', sep = ",")
+
+```
+
+
+```{r Top author}
+source("au_perform.R")
+
+top_author <- au_perform(data) 
+
+```
+
+```{r Top keywords}
+
+keywords.data <- data %>% select(ID, TI, PY, DE) # select the data include in the study
+
+keywords_yrs <- KeywordGrowth(keywords.data, Tag = "ID", sep=";", top = 50, cdf = T) # find top 50 key words over years. 
+
+write.table(keywords_yrs, file = "./results/tbl_keyword_yrs.csv", sep = ",", row.names = F) # save table names. 
+
+``` 
+

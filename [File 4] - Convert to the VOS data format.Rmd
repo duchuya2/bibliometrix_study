@@ -1,0 +1,43 @@
+---
+title: '[FILE 4]-Converst to VOS data format'
+author: "Harley"
+date: "3/1/2022"
+output: html_document
+---
+```{r How to use the File 4}
+print('This R file support you how to convert bibliometric data into the VOS format. The code script is organized by the following structure: 
+1.Load the package
+2.Import data
+3.Export the data for VOS Viewer Visualization
+      ')
+```
+
+```{r 1.Load the package}
+rm(list = ls())
+library(pacman)
+p_load(tidyverse,bibliometrix)
+```
+
+```{r 2.Import data}
+
+load(file = "./data/data.RData")
+
+```
+
+
+```{r 3. Export the data for VOS Viewer Visualization}
+
+vos.data <- data %>% select(AU, TI,	PY,	PU,	DI,	C1,	DE,CR) %>% rename("Authors" = AU, "Title" = TI	,"Year" = PY, "Source title" = PU, "DOI"=DI	,"Affiliations" = C1,"Author Keywords"=DE, "References" =CR)
+
+
+# Modify the separators to support the VOSViewer format
+vos.data$Authors <- gsub(";", "., ",vos.data$Authors) # The author column: change the separator: ";" => ".,"
+
+vos.data$Authors[-length(vos.data$Authors)] <- paste0(vos.data$Authors[-length(vos.data$Authors)], '.') 
+
+vos.data$`Author Keywords` <- gsub("[[:punct:]]","; ", vos.data$`Author Keywords`)
+
+write.table(vos.data, file = "./data/vos_data.csv", sep = ",", row.names = F) # Check the error
+
+```
+

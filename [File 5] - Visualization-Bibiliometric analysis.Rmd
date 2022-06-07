@@ -1,0 +1,68 @@
+---
+title: '[File 5]-Visualization-Bibiliometric analysis'
+author: "Harley"
+date: "4/1/2022"
+output: html_document
+---
+```{r How to use the File 3}
+print('This R file support you how to visualize the result of the bibliometric data. The code script is organized by the following structure: 
+1.load the package
+2.Import data
+3.Plot author performance
+4.Three field plots
+5.Thematic map
+      ')
+
+# INPUT DATA: data.RData
+# OUTPUT DATA: data.RData 
+
+```
+
+
+```{r 1.Load the package}
+rm(list = ls())
+library(pacman)
+p_load(tidyverse,lubridate, lattice, devtools,bibliometrix)
+```
+
+```{r 2.Import data}
+load(file = "./data/data.RData")
+
+```
+
+
+```{r 3.Plot author performance}
+
+# cairo_pdf(filename = "Fig_author.pdf",
+#           width = 10, height = 5, 
+#           onefile = TRUE, family = "Segoe UI") 
+authorProdOverTime(data)
+
+dev.off() 
+```
+
+
+```{r 4.Three field plots}
+rm(list=ls())
+setwd("C:/Users/ASUS/Desktop/")
+load(file = "C:/Users/ASUS/Desktop/data/data.RData")
+threeFieldsPlot(data, fields = c("AU", "DE", "SO"), n = c(20, 20, 20))
+
+```
+
+```{r 5.Thematic map}
+
+thematicMap(
+  data,
+  field = "ID",
+  n = 150,
+  minfreq = 3,
+  ngrams = 1,
+  stemming = FALSE,
+  size = 0.5,
+  n.labels = 1,
+  repel = TRUE
+)
+
+```
+

@@ -1,0 +1,98 @@
+---
+title: "FILE 1 - IMPORT THE BIBLIOMETRIX DATA"
+author: "Harley"
+date: "3/1/2022"
+output: html_document
+---
+```{r How to use the FILE 1}
+print('This R file support you how to import the data from the Web of Science database and Scopus database. The code script is organized by the following structure: 
+1. Install the essential R packages for importing
+2. Import data from WOS
+3. Import data from Scopus
+4. Combine data from 2 databases
+5. Create and export the data for the analysis
+      ')
+
+# Light green indicate the comments, no execute the code
+# INPUT DATA: wos_database.text ; scopus_database.bib
+# OUTPUT DATA: pre.data.RData
+
+```
+
+
+
+```{r 1. Install the essential R packages for importing}
+rm(list = ls()) # Delete the old data
+install.packages("pacman") # if the computer has been not yet installed pacman
+library(pacman)
+p_load(tidyverse,bibliometrix) 
+```
+
+```{r 2. Import data from WOS}
+
+wos1 <- convert2df("./data/WOS/1-500.txt", dbsource = "wos", format = "plaintext")  # === Fill === Input the WOS file txt and convert into the analyzed bibliometric data
+wos2 <- convert2df("./data/WOS/501-1000.txt", dbsource = "wos", format = "plaintext")  # === Fill === Input the WOS file txt and convert into the analyzed bibliometric data
+ 
+```
+
+
+```{r 3. Import data from Scopus}
+
+scopus1 <- convert2df("./data/Scopus/scopus1-2000.bib", dbsource = "scopus", format= "bibtex") ## input scopus data .bib and convert into the analyzed bibliometric data
+# scopus2 <- convert2df("scopus data name 2", dbsource = "scopus", format= "bibtex")
+
+scopus1 <- scopus1 %>% head(1000) # select 1000 papers
+
+
+```
+
+```{r Import pubmed file}
+
+pubmed1 <- convert2df("./data/Pubmed/pubmed-healthlite-set.txt", dbsource = "pubmed", format = "pubmed")
+
+write.table(pubmed1, file="./data/Pubmed/pubmed1_conv.csv", row.names = F, sep =",")
+```
+
+
+```{r 4. Combine data from 2 database}
+source("s_combine_data.R")
+
+combined.data<- merge.wos.scopus(wos1, wos2, scopus1) # ===Fill=== Fill all the data to merge together
+
+combined.data <- combined.data %>% head(1000)
+
+save(combined.data,file= "./data/combined_data.RData") # save the data
+```
+
+```{r 5. Create and export the data for the analysis}
+rm(list=ls()) # remove the old file
+load(file= "./data/combined_data.RData") # import combined data
+source('meta_extr_country.R') # load the functions to extract the country name of author paper
+pre.data <- combined.data # input the combined data
+
+pre.data <- metaTagExtraction_n(pre.data, Field = "AU1_CO", sep = ";") # Get the country of article author
+
+
+# create the prepossessed data with necessary variables 
+pre.data <- data.frame('AU' = pre.data$AU, # Author name
+                        'TI' = as.character(pre.data$TI), # title_article
+                        'SO' = as.character(pre.data$SO), # Publication name
+                        'DE' = as.character(pre.data$DE), # Author keywords
+                        'ID' = as.character(pre.data$ID), # Keyword plus
+                        'AB' = as.character(pre.data$AB), # Abstract
+                        'C1' = as.character(pre.data$C1), # Author address
+                        'TC' = as.numeric(pre.data$TC), # Total citation
+                        'PY' = as.numeric(pre.data$PY), # Publication year
+                        'CR' = as.character(pre.data$CR), # cited reference 
+                        'AU1_CO' = as.character(pre.data$AU1_CO), # country of author
+                        'DB' = as.character(pre.data$DB) , # Type of Database
+                        'PU' = as.character(pre.data$PU) ,# Publisher
+                        'DI' = as.character(pre.data$DI)  # DOI
+                        )
+
+save(pre.data, file="./data/pre.data.RData") # save prepossessed data
+
+```
+
+
+
