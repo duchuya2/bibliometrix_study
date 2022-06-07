@@ -1,4 +1,5 @@
-# bibliometrix_study
+# BIBLIOMETRIC STUDY TRAINING
+Sau khi hoàn thành buổi tập huấn: người tham gia có thể hiểu dược cách phân tích Bibiliometric data 
 Trang web này cung cấp các code cơ bản để phân tích Bibliometric data. 
 Các file này được tổ chức thành 5 file được đánh số thứ tự
 #File 1: Cách nhập dữ liệu Bibliometric
@@ -7,7 +8,7 @@ Các file này được tổ chức thành 5 file được đánh số thứ t�
 #File 4: Chuẩn bị dữ liệu cho phần mềm VOS Viewer
 #File 5: Vễ Biểu đồ Bibliometric
 
-## Sau khi hoàn thành buổi tập huấn: người tham gia có thể hiểu dược cách phân tích Bibiliometric data 
+# Eng.ver
 #File 1: Import the Bibliometrix data
 #File 2: Handle missing data
 #File 3: bibliometric_analysis
